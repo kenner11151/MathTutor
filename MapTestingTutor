@@ -1,0 +1,188 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+
+const allWeaknesses = [
+  {
+    teks: "7.4D",
+    description: "Ratios and Proportions",
+    quiz: {
+      question: "If 3 pencils cost $1.20, how much do 5 pencils cost?",
+      options: ["$1.50", "$2.00", "$2.40", "$2.60"],
+      answer: "$2.00"
+    }
+  },
+  {
+    teks: "7.7A",
+    description: "Graphs and Proportional Relationships",
+    quiz: {
+      question: "Which of the following represents a proportional relationship?",
+      options: [
+        "A line that does not go through the origin",
+        "A curved line",
+        "A line that passes through the origin",
+        "A scatter plot"
+      ],
+      answer: "A line that passes through the origin"
+    }
+  },
+  {
+    teks: "7.11A",
+    description: "Solving Two-Step Equations",
+    quiz: {
+      question: "Solve: 2x - 5 = 11",
+      options: ["3", "6", "8", "9"],
+      answer: "8"
+    }
+  },
+  {
+    teks: "7.3B",
+    description: "Order of Operations",
+    quiz: {
+      question: "What is the value of 3 + 4 × 2?",
+      options: ["7", "11", "14", "12"],
+      answer: "11"
+    }
+  },
+  {
+    teks: "7.6B",
+    description: "Simple Probability",
+    quiz: {
+      question: "If 4 out of 10 marbles are red, what is the probability of drawing a red one?",
+      options: ["0.2", "0.3", "0.4", "0.5"],
+      answer: "0.4"
+    }
+  }
+];
+
+const generateLesson = (teks) => {
+  switch (teks) {
+    case "7.4D":
+      return "To find the cost per pencil: $1.20 ÷ 3 = $0.40. Then: 5 x $0.40 = $2.00.";
+    case "7.7A":
+      return "A proportional relationship forms a straight line through the origin (0,0).";
+    case "7.11A":
+      return "To solve 2x - 5 = 11: Add 5 to both sides (2x = 16), then divide by 2 (x = 8).";
+    case "7.3B":
+      return "Follow PEMDAS: Parentheses, Exponents, Multiply/Divide, Add/Subtract. For example, 3 + 4 × 2 = 3 + 8 = 11.";
+    case "7.6B":
+      return "Probability is favorable outcomes over total outcomes. If 4 out of 10 marbles are red, the probability is 4/10 or 0.4.";
+    default:
+      return "Lesson not found.";
+  }
+};
+
+export default function AutoTutorMAPApp() {
+  const [selectedTEKS, setSelectedTEKS] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [scores, setScores] = useState({});
+
+  const toggleTEKS = (teks) => {
+    setSelectedTEKS((prev) =>
+      prev.includes(teks) ? prev.filter((t) => t !== teks) : [...prev, teks]
+    );
+  };
+
+  const handleQuizChange = (teks, answer) => {
+    setQuizAnswers((prev) => ({ ...prev, [teks]: answer }));
+    const correctAnswer = allWeaknesses.find((i) => i.teks === teks).quiz.answer;
+    const correct = answer === correctAnswer;
+    setScores((prev) => ({ ...prev, [teks]: correct }));
+  };
+
+  const isCorrect = (teks) => scores[teks];
+
+  const masteredCount = Object.values(scores).filter(Boolean).length;
+  const masteryPercent = selectedTEKS.length > 0 ? Math.round((masteredCount / selectedTEKS.length) * 100) : 0;
+
+  const generateEnrichment = (teks) => {
+  switch (teks) {
+    case "7.4D":
+      return "Enrichment: Create your own word problem involving proportional relationships and solve it.";
+    case "7.7A":
+      return "Enrichment: Graph a proportional relationship on Desmos or paper and explain why it’s proportional.";
+    case "7.11A":
+      return "Enrichment: Write and solve a two-step equation based on a real-life scenario (e.g., buying snacks).";
+    case "7.3B":
+      return "Enrichment: Design a math puzzle that requires PEMDAS to solve and challenge a classmate.";
+    case "7.6B":
+      return "Enrichment: Conduct an experiment (e.g., flipping a coin 20 times) and calculate experimental vs theoretical probability.";
+    default:
+      return "No enrichment available.";
+  }
+};
+
+return (
+    <div className="p-4 max-w-3xl mx-auto space-y-4">
+      <h1 className="text-2xl font-bold">7th Grade Math Auto-Tutor (MAP-Based)</h1>
+
+      {!submitted && (
+        <>
+          <p className="text-base">Select weaknesses based on MAP testing data to generate personalized lessons.</p>
+          <div className="space-y-2">
+            {allWeaknesses.map((item) => (
+              <label key={item.teks} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedTEKS.includes(item.teks)}
+                  onChange={() => toggleTEKS(item.teks)}
+                />
+                TEKS {item.teks} - {item.description}
+              </label>
+            ))}
+          </div>
+          <Button onClick={() => setSubmitted(true)} className="mt-4">Generate Lessons</Button>
+        </>
+      )}
+
+      {submitted && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Personalized Lessons</h2>
+          <p className="text-sm text-gray-600">Mastery Progress: {masteredCount} of {selectedTEKS.length} mastered</p>
+          <Progress value={masteryPercent} className="h-3" />
+          {selectedTEKS.map((teks) => {
+            const item = allWeaknesses.find((i) => i.teks === teks);
+            const mastered = scores[teks];
+            return (
+              <Card key={teks} className={mastered ? "border-green-400" : ""}>
+                <CardContent className="space-y-2 p-4">
+                  <p><strong>TEKS {item.teks} - {item.description}</strong> {mastered && <span className="text-green-600">✔ Mastered</span>}</p>
+                  <p>{generateLesson(teks)}</p>
+                  <div>
+                    <p className="font-semibold">Quick Check:</p>
+                    <p>{item.quiz.question}</p>
+                    {item.quiz.options.map((opt) => (
+                      <label key={opt} className="block">
+                        <input
+                          type="radio"
+                          name={`quiz-${teks}`}
+                          value={opt}
+                          checked={quizAnswers[teks] === opt}
+                          onChange={() => handleQuizChange(teks, opt)}
+                        /> {opt}
+                      </label>
+                    ))}
+                    {quizAnswers[teks] && (
+                      <p className={isCorrect(teks) ? "text-green-600" : "text-red-600"}>
+                        {isCorrect(teks) ? "Correct!" : `Incorrect. Correct answer: ${item.quiz.answer}`}
+                      </p>
+                    )}
+                  </div>
+                {mastered && (
+                    <div className="mt-2 p-2 border rounded bg-green-50">
+                      <p className="font-semibold">Enrichment Task:</p>
+                      <p>{generateEnrichment(teks)}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
